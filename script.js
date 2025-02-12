@@ -4,42 +4,27 @@ import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 import { TextureLoader } from 'three';
 
 
-
-// Получаем canvas
 const canvasElement = document.getElementById('canvas_3d');
-if (!canvasElement) {
-    console.error("Canvas not found");
-}
 
-// Создаем сцену
 const scene = new THREE.Scene();
+scene.environmentIntensity = 0.4;
 
-// CAMERA
-const camera = new THREE.PerspectiveCamera(30, canvasElement.clientWidth / canvasElement.clientHeight, 0.1, 1000);
-camera.position.set(0, -1, 20);
-console.log("Camera:", camera.position);
-
-// LIGHT
-
-const pointLight = new THREE.PointLight(0xffffff, 20, 0);
-pointLight.position.set(0, 5, 20);
-scene.add(pointLight);
-
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1.4); // Белый свет, интенсивность 2
-directionalLight.position.set(10, 0, 35); // Размещаем свет сверху и немного сбоку
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+directionalLight.position.set(-5, -45, 25);
 scene.add(directionalLight);
 
-const directionalLight2 = new THREE.DirectionalLight(0xffffff, 1.4); // Белый свет, интенсивность 2
-directionalLight2.position.set(-20, 10, 55); // Размещаем свет сверху и немного сбоку
+const directionalLight2 = new THREE.DirectionalLight(0xffffff, 2.5);
+directionalLight2.position.set(5, 10, 25);
 scene.add(directionalLight2);
 
+const camera = new THREE.PerspectiveCamera(30, canvasElement.clientWidth / canvasElement.clientHeight, 0.1, 1000);
+camera.position.set(0, -0.2, 22);
+console.log("Camera:", camera.position);
 
-// RENDERER
 const renderer = new THREE.WebGLRenderer({ canvas: canvasElement, alpha: true });
 renderer.setSize(canvasElement.clientWidth, canvasElement.clientHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 
-//HDR LOADER
 const rgbeLoader = new RGBELoader();
 rgbeLoader.load('source/Ambiance.hdr', (texture) => {
   texture.mapping = THREE.EquirectangularReflectionMapping;
@@ -47,20 +32,18 @@ rgbeLoader.load('source/Ambiance.hdr', (texture) => {
   scene.background = null;
 });
 
-// TEXTURES LOADING
 const textureLoader = new TextureLoader();
 const roughnessTexture = textureLoader.load('source/roughness.jpg');
+let model = null;
 
-// Загрузка модели
 const loader = new GLTFLoader();
 loader.load('source/tickets3.gltf', (gltf) => {
-  const model = gltf.scene;
-
-  // Настройка материала
+  model = gltf.scene;
+  model.position.set(0, 0.4, 0);
   model.traverse((child) => {
     if (child.isMesh) {
         child.material = new THREE.MeshStandardMaterial({
-            color: 0xDD99DD,
+            color: 0xDD99E5,
             roughnessMap: roughnessTexture,
             metalness: 0.1,
             roughness: 0.2
@@ -68,153 +51,68 @@ loader.load('source/tickets3.gltf', (gltf) => {
         child.material.needsUpdate = true;
     }
   });
-
   scene.add(model);
-
-  // Анимация поворота
-  let angleX = 0;
-  let angleY = 5;
-  const amplitude = 12; // Амплитуда вращения объекта (можно менять здесь)
-  const speed = 0.005; // Скорость вращения объекта (можно менять здесь)
-  const easing = Math.sin; // Настройка кривой ускорения (можно менять функцию здесь)
-
- function animate() {
-    requestAnimationFrame(animate);
-
-    // Вычисление углов с фазовым сдвигом
-    const rotationX = amplitude * Math.sin(angleX) * (Math.PI / 180);
-    const rotationY = amplitude * Math.sin(angleX + Math.PI / 2) * (Math.PI / 180);
-
-    model.rotation.x = rotationX;
-    model.rotation.y = rotationY;
-
-    // Увеличение угла
-    angleX += speed;
-
-    renderer.render(scene, camera);
-}
-
-  animate();
 });
 
-// Освещение
-const lightIntensity = 0.4; // Сила освещения карты окружения
-scene.environmentIntensity = lightIntensity;
-
-// // Рендерер, привязанный к canvas
-// const renderer = new THREE.WebGLRenderer({ canvas: canvasElement, antialias: true, alpha: true });
-// renderer.setSize(canvasElement.clientWidth, canvasElement.clientHeight);
-// renderer.setPixelRatio(window.devicePixelRatio);
-// renderer.outputEncoding = THREE.sRGBEncoding;
-// renderer.toneMapping = THREE.ACESFilmicToneMapping;
-// renderer.toneMappingExposure = 1.0;
 
 
-// // Переменная для анимаций
-// let mixer = null;
+let isTouchDevice = 'ontouchstart' in window;
 
-// // Загрузка модели
-// const loader = new GLTFLoader();
-// loader.load('source/tickets.glb', function (gltf) {
-//     console.log("Model:", gltf);
+let angleX = 0;
+let angleY = 5;
+const amplitude = 18;
+const speed = 0.0065;
+const easing = Math.sin;
 
-//     const model = gltf.scene;
-//     scene.add(model);
-
-//       if (gltf.textures && gltf.textures.length > 0) {
-//         console.log("Найдено текстур:", gltf.textures.length);
-//     } else {
-//         console.warn("The model does not have built-in textures.");
-//     }
+let targetRotationX = 0;
+let targetRotationY = 0;
+let currentRotationX = 0;
+let currentRotationY = 0;
+const lerpFactor = 0.01;
+const rotationStrength = 0.15;
 
 
-//     // Проверяем и активируем текстуры
-//     model.traverse((child) => {
-//         if (child.isMesh) {
-//             console.log("Geometry:", child);
+if (!isTouchDevice) {
+  window.addEventListener('mousemove', (event) => {
+    const { innerWidth, innerHeight } = window;
+    let normalizedX = (event.clientX / innerWidth) * 2 - 1;
+    let normalizedY = (event.clientY / innerHeight) * 2 - 1;
+    targetRotationX = normalizedY * Math.PI * rotationStrength;
+    targetRotationY = normalizedX * Math.PI * rotationStrength;
+  });
+}
 
-//             // Проверяем, есть ли у меша материал
-//             if (child.material) {
-//                 console.log("Материал найден:", child.material);
+function animate() {
+  requestAnimationFrame(animate);
+  if (model) {
+    if (isTouchDevice) {
+      const rotationX = amplitude * Math.sin(angleX) * (Math.PI / 180);
+      const rotationY = amplitude * Math.sin(angleX + Math.PI / 2) * (Math.PI / 180);
+      model.rotation.x = rotationX;
+      model.rotation.y = rotationY;
+      angleX += speed;
+    } else {
+      currentRotationX += (targetRotationX - currentRotationX) * lerpFactor;
+      currentRotationY += (targetRotationY - currentRotationY) * lerpFactor;
+      model.rotation.x = currentRotationX;
+      model.rotation.y = currentRotationY;
+    }
+  }
+  renderer.render(scene, camera);
+}
 
-//                 // Если текстура отсутствует, пытаемся включить стандартный цвет
-//                 if (child.material.map) {
-//                     console.log("Текстура загружена:", child.material.map);
-//                 } else {
-//                     console.warn("Текстура отсутствует, добавляем цвет по умолчанию.");
-//                     child.material.color.set(0xff66bb); // Белый цвет вместо текстуры
-//                 }
+function onWindowResize() {
+  const width = canvasElement.clientWidth;
+  const height = canvasElement.clientHeight;
 
-//                 // Убеждаемся, что материал видимый
-//                 child.material.visible = true;
-//                 child.material.needsUpdate = true;
-//             } else {
-//                 console.warn("Материал не найден, устанавливаем базовый.");
-//                 child.material = new THREE.MeshStandardMaterial({ color: 0xffffff });
-//             }
-//         }
-//     });
+  renderer.setSize(width, height);
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+}
 
-//     // Проверяем наличие встроенного освещения
-//     const lights = [];
-//     model.traverse((child) => {
-//         if (child.isLight) {
-//             lights.push(child);
-//             console.log("Обнаружен встроенный источник света:", child);
-//         }
-//     });
+window.addEventListener('resize', onWindowResize);
 
-//     if (lights.length === 0) {
-//         console.warn("The model does not have built-in lighting");
-
-//         const defaultLight = new THREE.DirectionalLight(0xffffff, 2);
-//         defaultLight.position.set(5, 5, 5);
-//         scene.add(defaultLight);
-
-//         const pointLight2 = new THREE.PointLight(0x000000, 20, 10);
-// 		pointLight2.position.set(5, 5, 5);
-// 		scene.add(pointLight2);
-
-//     } else {
-//         console.log("Use built-in lighting");
-//         // Освещение
-// 		const ambientLight = new THREE.AmbientLight(0xffffff, 1); // Мягкий свет
-// 		scene.add(ambientLight);
-//     }
-
-//     // Проверяем наличие анимаций
-//     if (gltf.animations.length > 0) {
-//         mixer = new THREE.AnimationMixer(model);
-//         gltf.animations.forEach((clip) => {
-//             const action = mixer.clipAction(clip);
-//             action.play();
-//         });
-//     } else {
-//         console.warn("No animations in the model");
-//     }
-// }, 
-// 	undefined, function (error) {
-//     console.error('Model loading error', error);
-// });
+onWindowResize();
+animate();
 
 
-// // Анимация рендера
-// function animate() {
-//     requestAnimationFrame(animate);
-//     if (mixer) mixer.update(0.016);
-//     renderer.render(scene, camera);
-// }
-// animate();
-
-
-
-// // Обработчик изменения размеров окна
-// window.addEventListener('resize', () => {
-//     camera.aspect = canvasElement.clientWidth / canvasElement.clientHeight;
-//     camera.updateProjectionMatrix();
-//     renderer.setSize(canvasElement.clientWidth, canvasElement.clientHeight);
-//     console.log("Размеры canvas обновлены");
-// });
-
-// // Отладка: проверка размеров canvas
-// console.log("Canvas size:", canvasElement.clientWidth, canvasElement.clientHeight);
