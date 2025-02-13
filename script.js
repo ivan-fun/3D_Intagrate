@@ -7,13 +7,13 @@ import { TextureLoader } from 'three';
 const canvasElement = document.getElementById('canvas_3d');
 
 const scene = new THREE.Scene();
-scene.environmentIntensity = 0.35;
+scene.environmentIntensity = 0.9;
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
 directionalLight.position.set(-5, -45, 25);
 scene.add(directionalLight);
 
-const directionalLight2 = new THREE.DirectionalLight(0xffffff, 2.5);
+const directionalLight2 = new THREE.DirectionalLight(0xffffff, 2);
 directionalLight2.position.set(5, 10, 25);
 scene.add(directionalLight2);
 
@@ -37,13 +37,13 @@ const textureLoader = new TextureLoader();
 const roughnessTexture = textureLoader.load('source/roughness.jpg', () => {
   roughnessTexture.wrapS = THREE.RepeatWrapping;
   roughnessTexture.wrapT = THREE.RepeatWrapping;
-  roughnessTexture.repeat.set(6, 6);
+  roughnessTexture.repeat.set(3.5,3.5);
 });
 
 let model = null;
 const loader = new GLTFLoader();
 
-loader.load('source/tickets3.gltf', (gltf) => {
+loader.load('source/tickets4.gltf', (gltf) => {
   model = gltf.scene;
   model.position.set(0, 0.4, 0);
   model.traverse((child) => {
@@ -51,7 +51,7 @@ loader.load('source/tickets3.gltf', (gltf) => {
         child.material = new THREE.MeshStandardMaterial({
             color: 0xDA96EA,
             roughnessMap: roughnessTexture,
-            metalness: 0.1,
+            metalness: 0.01,
             roughness: 0.2
         });
         child.material.needsUpdate = true;
@@ -74,8 +74,8 @@ let targetRotationX = 0;
 let targetRotationY = 0;
 let currentRotationX = 0;
 let currentRotationY = 0;
-const lerpFactor = 0.012;
-const rotationStrength = 0.18;
+const lerpFactor = 0.02;
+const rotationStrength = 0.2;
 
 
 if (!isTouchDevice) {
