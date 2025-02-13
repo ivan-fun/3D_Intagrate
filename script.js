@@ -21,9 +21,10 @@ const camera = new THREE.PerspectiveCamera(30, canvasElement.clientWidth / canva
 camera.position.set(0, -0.2, 22);
 console.log("Camera:", camera.position);
 
-const renderer = new THREE.WebGLRenderer({ canvas: canvasElement, alpha: true });
+const renderer = new THREE.WebGLRenderer({ canvas: canvasElement, antialias: true, alpha: true });
 renderer.setSize(canvasElement.clientWidth, canvasElement.clientHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
+
 
 const rgbeLoader = new RGBELoader();
 rgbeLoader.load('source/Ambiance.hdr', (texture) => {
