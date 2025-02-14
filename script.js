@@ -43,22 +43,41 @@ const roughnessTexture = textureLoader.load('source/roughness.jpg', () => {
 let model = null;
 const loader = new GLTFLoader();
 
-loader.load('source/tickets4.gltf', (gltf) => {
-  model = gltf.scene;
-  model.position.set(0, 0.4, 0);
-  model.traverse((child) => {
-    if (child.isMesh) {
-        child.material = new THREE.MeshStandardMaterial({
-            color: 0xDA96EA,
-            roughnessMap: roughnessTexture,
-            metalness: 0.01,
-            roughness: 0.2
-        });
-        child.material.needsUpdate = true;
-    }
+if (isTouchDevice) {
+  loader.load('source/tickets4.gltf', (gltf) => {
+    model = gltf.scene;
+    model.position.set(0, 0.4, 0);
+    model.traverse((child) => {
+      if (child.isMesh) {
+          child.material = new THREE.MeshStandardMaterial({
+              color: 0xDA96EA,
+              roughnessMap: roughnessTexture,
+              metalness: 0.01,
+              roughness: 0.2
+          });
+          child.material.needsUpdate = true;
+      }
+    });
+    scene.add(model);
   });
-  scene.add(model);
-});
+} else {
+  loader.load('source/tickets3.gltf', (gltf) => {
+    model = gltf.scene;
+    model.position.set(0, 0.4, 0);
+    model.traverse((child) => {
+      if (child.isMesh) {
+          child.material = new THREE.MeshStandardMaterial({
+              color: 0xDA96EA,
+              roughnessMap: roughnessTexture,
+              metalness: 0.01,
+              roughness: 0.2
+          });
+          child.material.needsUpdate = true;
+      }
+    });
+    scene.add(model);
+  });
+}
 
 
 

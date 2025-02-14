@@ -39,3 +39,9 @@ body {
 	aspect-ratio: 16/9;
 /*    background-color: #000;*/
 }
+
+@media (max-width: 768px) and (hover: none) {
+    .canvas_3d {
+        width: clamp(320px, 110vw, 800px);
+    }
+}
