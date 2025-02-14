@@ -22,8 +22,23 @@ camera.position.set(0, -0.2, 22);
 console.log("Camera:", camera.position);
 
 const renderer = new THREE.WebGLRenderer({ canvas: canvasElement, antialias: true, alpha: true });
-renderer.setSize(canvasElement.clientWidth, canvasElement.clientHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
+
+function setCanvasSize() {
+  const width = canvasElement.clientWidth;
+  const height = canvasElement.clientHeight;
+  const pixelRatio = window.devicePixelRatio;
+
+  canvasElement.width = width * pixelRatio;
+  canvasElement.height = height * pixelRatio;
+
+  renderer.setSize(width, height, false);
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+}
+
+setCanvasSize();
+window.addEventListener('resize', setCanvasSize);
 
 
 const rgbeLoader = new RGBELoader();
@@ -124,18 +139,5 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-function onWindowResize() {
-  const width = canvasElement.clientWidth;
-  const height = canvasElement.clientHeight;
-
-  renderer.setSize(width, height);
-  camera.aspect = width / height;
-  camera.updateProjectionMatrix();
-}
-
-window.addEventListener('resize', onWindowResize);
-
-onWindowResize();
 animate();
-
 
