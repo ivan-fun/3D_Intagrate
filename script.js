@@ -42,6 +42,7 @@ const roughnessTexture = textureLoader.load('source/roughness.jpg', () => {
 
 let model = null;
 const loader = new GLTFLoader();
+let isTouchDevice = 'ontouchstart' in window;
 
 if (isTouchDevice) {
   loader.load('source/tickets4.gltf', (gltf) => {
@@ -79,9 +80,6 @@ if (isTouchDevice) {
   });
 }
 
-
-
-let isTouchDevice = 'ontouchstart' in window;
 
 let angleX = 0;
 let angleY = 5;
