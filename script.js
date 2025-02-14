@@ -99,7 +99,7 @@ if (isTouchDevice) {
 let angleX = 0;
 let angleY = 5;
 const amplitude = 18;
-const speed = 0.0065;
+const speed = 0.008;
 const easing = Math.sin;
 
 let targetRotationX = 0;

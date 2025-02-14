@@ -47,6 +47,6 @@ body {
 
 @media (max-width: 768px) {
     .canvas_3d {
-        width: clamp(320px, 100vw, 720px);
+        width: 110vw;
     }
 }
